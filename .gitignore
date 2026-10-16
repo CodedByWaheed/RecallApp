@@ -1,0 +1,133 @@
+
+# ==========================================
+# .NET / C#
+# ==========================================
+
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rtifacts/
+
+# Visual Studio generated files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.rsuser
+*.sln.ide
+
+# Visual Studio temporary files
+*.tmp_proj
+*.cache
+*.log
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.VC.VC.opendb
+
+# Compiled files
+*.dll
+*.exe
+*.app
+*.class
+*.pdb
+*.ilk
+*.obj
+*.pch
+*.idb
+*.tlog/
+
+# ==========================================
+# NuGet
+# ==========================================
+
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# ==========================================
+# Secrets & Environment Variables
+# ==========================================
+
+.env
+.env.*
+!.env.example
+
+# ASP.NET Core secrets / local configuration
+appsettings.Local.json
+appsettings.*.Local.json
+
+# Certificates and private keys
+*.pfx
+*.p12
+*.key
+*.pem
+*.cer
+
+# ==========================================
+# Databases & Backups
+# ==========================================
+
+*.mdf
+*.ldf
+*.ndf
+*.bak
+*.bacpac
+*.sqlitedb
+*.sqlite
+*.sqlite3
+*.db
+
+# ==========================================
+# Logs
+# ==========================================
+
+logs/
+Logs/
+*.log
+*.log.*
+log.txt
+
+# ==========================================
+# Test Results & Coverage
+# ==========================================
+
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+coverage/
+coverage.*
+*.coverage
+*.coveragexml
+
+# ==========================================
+# Visual Studio Code
+# ==========================================
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+
+# ==========================================
+# Rider / JetBrains
+# ==========================================
+
+.idea/
+*.sln.iml
+
+# ==========================================
+# Operating Systems
+# ==========================================
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+Desktop.ini
+$RECYCLE.BIN/

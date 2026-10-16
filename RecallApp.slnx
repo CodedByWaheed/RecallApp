@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ConsoleApp1/ToGeneratKey.csproj" Id="685e863d-5c2d-4a98-9ef8-0f00f45454ac" />
+  <Project Path="RecallApp_API/RecallApp_API.csproj" />
+  <Project Path="RecallApp_BL/RecallApp_BL.csproj" />
+  <Project Path="RecallApp_DL/RecallApp_DL.csproj" />
+</Solution>
