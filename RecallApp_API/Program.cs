@@ -162,8 +162,6 @@ builder.Services.AddRateLimiter(options =>
                     AutoReplenishment = true
                 });
         });
-
-
     // Login and registration: 5 requests per minute per IP.
     options.AddPolicy("AuthPolicy", httpContext =>
     {
@@ -222,6 +220,8 @@ builder.Services.AddScoped<IReminderService, ReminderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<CurrentRequestInfo>();
 
 
 

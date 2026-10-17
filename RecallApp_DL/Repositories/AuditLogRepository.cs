@@ -38,6 +38,10 @@ namespace RecallApp_DL.Repositories
             command.Parameters.Add("@TraceId", SqlDbType.NVarChar, 100).Value = (object?)model.TraceId ?? DBNull.Value;
 
             command.Parameters.Add("@Details", SqlDbType.NVarChar, 500).Value = (object?)model.Details ?? DBNull.Value;
+           
+            command.Parameters.Add("@IpAddress", SqlDbType.NVarChar, 45).Value = (object?)model.IpAddress ?? DBNull.Value;
+            
+            command.Parameters.Add("@UserAgent", SqlDbType.NVarChar, 512).Value = (object?)model.UserAgent ?? DBNull.Value;
 
             await connection.OpenAsync();
 

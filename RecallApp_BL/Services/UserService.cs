@@ -13,49 +13,70 @@ namespace RecallApp_BL.Services
         private readonly IUserRepository _userRepository;
         private readonly PasswordService _passwordService;
         private readonly ILogger<UserService> _logger;
+        private readonly IAuditLogRepository _auditLog;
+        private readonly CurrentRequestInfo _currentRequestInfo;
 
-        public UserService(IUserRepository userRepository, PasswordService passwordService , ILogger<UserService> logger)
+        public UserService(IUserRepository userRepository,PasswordService passwordService
+            ,ILogger<UserService> logger,IAuditLogRepository auditLog,CurrentRequestInfo currentRequest)
         {
             _userRepository = userRepository;
             _passwordService = passwordService;
             _logger = logger;
+            _auditLog = auditLog;
+            _currentRequestInfo = currentRequest;
         }
 
         public async Task<Guid> RegisterAsync(string email, string password)
         {
-            if (string.IsNullOrWhiteSpace(email)) { 
-                _logger.LogWarning("Attempted to register with an empty or whitespace email.");
+            if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required.");
-            }   
 
             email = email.Trim().ToLowerInvariant();
 
             if (email.Length > 320 ||!new EmailAddressAttribute().IsValid(email))
-            {
-                _logger.LogWarning("Attempted to register with an invalid email: {Email}", email);
                 throw new ArgumentException("Invalid email address.");
-            }
 
-            if (string.IsNullOrWhiteSpace(password)) { 
-                _logger.LogWarning("Attempted to register with an empty or whitespace password.");
+            if (string.IsNullOrWhiteSpace(password))
                 throw new ArgumentException("Password is required.");
-            }
 
             if (password.Length < 8 || password.Length > 128)
-            {
-                _logger.LogWarning("Attempted to register with a password that is not between 8 and 128 characters: {PasswordLength}", password.Length);
                 throw new ArgumentException("Password must be between 8 and 128 characters.");
-            }
 
-            string passwordHash = _passwordService.HashPassword(password);
+            Guid? userId = null;
 
-            var user = new UserModel
+            try
             {
-                Email = email,
-                PasswordHash = passwordHash
-            };
+                string passwordHash = _passwordService.HashPassword(password);
 
-            return await _userRepository.CreateAsync(user);
+                var user = new UserModel
+                {
+                    Email = email,
+                    PasswordHash = passwordHash
+                };
+
+                userId = await _userRepository.CreateAsync(user);
+
+                await WriteAuditSafelyAsync(userId,"Register","Users",
+                    userId.Value.ToString(),"Success","User registered successfully.",_currentRequestInfo.IpAddress!,_currentRequestInfo.UserAgent!);
+
+                return userId.Value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "User registration failed.");
+
+                await WriteAuditSafelyAsync(
+                    userId,
+                    "Register",
+                    "Users",
+                    userId?.ToString(),
+                    "Failure",
+                    "User registration failed.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
+
+                throw;
+            }
         }
 
         public async Task<UserModel?> GetProfileAsync(Guid userId)
@@ -65,96 +86,268 @@ namespace RecallApp_BL.Services
 
         public async Task<bool> UpdateEmailAsync(Guid userId,string email)
         {
-            if (string.IsNullOrWhiteSpace(email)) { 
-                _logger.LogWarning("Attempted to update email with an empty or whitespace value.");
+            if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentException("Email is required.");
-            }
 
             email = email.Trim().ToLowerInvariant();
 
-            var emailValidator = new EmailAddressAttribute();
-
-            if (!emailValidator.IsValid(email))
+            if (email.Length > 320 ||
+                !new EmailAddressAttribute().IsValid(email))
             {
-                _logger.LogWarning("Attempted to update email with an invalid value: {Email}", email);
                 throw new ArgumentException("Invalid email address.");
             }
 
-            if (email.Length > 320)
+            try
             {
-                _logger.LogWarning("Attempted to update email with a value that is too long: {EmailLength}", email.Length);
-                throw new ArgumentException("Email is too long.");
-            }   
+                bool updated =await _userRepository.UpdateEmailAsync(userId, email);
 
-            return await _userRepository.UpdateEmailAsync(userId, email);
+                await WriteAuditSafelyAsync(
+                    userId,"UpdateEmail","Users",userId.ToString(),
+                    updated ? "Success" : "Failure",
+                    updated? "User email updated.": "User email update did not complete.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
+
+                return updated;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to update email for user {UserId}.",
+                    userId);
+
+                await WriteAuditSafelyAsync(
+                    userId,
+                    "UpdateEmail",
+                    "Users",
+                    userId.ToString(),
+                    "Failure",
+                    "User email update failed.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
+
+                throw;
+            }
         }
 
-        public async Task<bool> ChangePasswordAsync(Guid userId,string currentPassword,string newPassword)
+        public async Task<bool> ChangePasswordAsync(
+            Guid userId,
+            string currentPassword,
+            string newPassword)
         {
             if (string.IsNullOrWhiteSpace(currentPassword))
-            {
-                _logger.LogWarning("Attempted to change password with an empty or whitespace current password.");
-                throw new ArgumentException("Current password is required.");
-            }
+                throw new ArgumentException(
+                    "Current password is required.");
 
             if (string.IsNullOrWhiteSpace(newPassword))
+                throw new ArgumentException(
+                    "New password is required.");
+
+            if (newPassword.Length < 8 || newPassword.Length > 128)
+                throw new ArgumentException(
+                    "New password must be between 8 and 128 characters.");
+
+            try
             {
-                _logger.LogWarning("Attempted to change password with an empty or whitespace new password.");
-                throw new ArgumentException("New password is required.");
+                var user = await _userRepository.GetByIdAsync(userId);
+
+                if (user is null)
+                {
+                    await WriteAuditSafelyAsync(
+                        userId,
+                        "ChangePassword",
+                        "Users",
+                        userId.ToString(),
+                        "Failure",
+                        "Password change failed because the user was not found."
+                        ,_currentRequestInfo.IpAddress!,
+                        _currentRequestInfo.UserAgent!);
+
+                    return false;
+                }
+
+                bool isCurrentPasswordValid =
+                    _passwordService.VerifyPassword(
+                        currentPassword,
+                        user.PasswordHash);
+
+                if (!isCurrentPasswordValid)
+                {
+                    await WriteAuditSafelyAsync(
+                        userId,
+                        "ChangePassword",
+                        "Users",
+                        userId.ToString(),
+                        "Failure",
+                        "Password change rejected because the current password was incorrect.",
+                        _currentRequestInfo.IpAddress!,
+                        _currentRequestInfo.UserAgent!);
+
+                    throw new ArgumentException(
+                        "Current password is incorrect.");
+                }
+
+                string newPasswordHash =
+                    _passwordService.HashPassword(newPassword);
+
+                bool updated =
+                    await _userRepository.UpdatePasswordHashAsync(
+                        userId,
+                        newPasswordHash);
+
+                await WriteAuditSafelyAsync(
+                    userId,
+                    "ChangePassword",
+                    "Users",
+                    userId.ToString(),
+                    updated ? "Success" : "Failure",
+                    updated
+                        ? "User password changed."
+                        : "User password change did not complete.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
+
+                return updated;
             }
-
-            if (newPassword.Length < 8) { 
-            _logger.LogWarning("Attempted to change password with a new password that is too short: {NewPasswordLength}", newPassword.Length);
-            throw new ArgumentException("New password is too short.");
-            }   
-
-            if (newPassword.Length > 128) { 
-                _logger.LogWarning("Attempted to change password with a new password that is too long: {NewPasswordLength}", newPassword.Length);
-                throw new ArgumentException("New password is too long.");
+            catch (ArgumentException)
+            {
+                throw;
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to change password for user {UserId}.",
+                    userId);
 
-            var user = await _userRepository.GetByIdAsync(userId);
+                await WriteAuditSafelyAsync(
+                    userId,
+                    "ChangePassword",
+                    "Users",
+                    userId.ToString(),
+                    "Failure",
+                    "User password change failed.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
 
-            if (user is null)
-                return false;
-
-            bool isCurrentPasswordValid =
-                _passwordService.VerifyPassword(
-                    currentPassword,
-                    user.PasswordHash);
-
-            if (!isCurrentPasswordValid) { 
-                _logger.LogWarning("Attempted to change password with an incorrect current password.");
-                throw new ArgumentException("Current password is incorrect.");
+                throw;
             }
-
-            string newPasswordHash =_passwordService.HashPassword(newPassword);
-
-            return await _userRepository.UpdatePasswordHashAsync(userId,newPasswordHash);
         }
 
-        public async Task<bool> DeleteAccountAsync(Guid userId,string currentPassword)
+        public async Task<bool> DeleteAccountAsync(
+            Guid userId,
+            string currentPassword)
         {
             if (string.IsNullOrWhiteSpace(currentPassword))
+                throw new ArgumentException(
+                    "Current password is required.");
+
+            try
             {
-                _logger.LogWarning("Attempted to delete account with an empty or whitespace current password.");
-                throw new ArgumentException("Current password is required.");
+                var user = await _userRepository.GetByIdAsync(userId);
+
+                if (user is null)
+                {
+                    await WriteAuditSafelyAsync(
+                        userId,
+                        "DeleteAccount",
+                        "Users",
+                        userId.ToString(),
+                        "Failure",
+                        "Account deletion failed because the user was not found."
+                        ,_currentRequestInfo.IpAddress!,
+                        _currentRequestInfo.UserAgent!);
+
+                    return false;
+                }
+
+                bool isPasswordValid =
+                    _passwordService.VerifyPassword(
+                        currentPassword,
+                        user.PasswordHash);
+
+                if (!isPasswordValid)
+                {
+                    await WriteAuditSafelyAsync(
+                        userId,
+                        "DeleteAccount",
+                        "Users",
+                        userId.ToString(),
+                        "Failure",
+                        "Account deletion rejected because the current password was incorrect.",
+                        _currentRequestInfo.IpAddress!,
+                        _currentRequestInfo.UserAgent!);
+
+                    throw new ArgumentException("Current password is incorrect.");
+                }
+
+                bool deleted = await _userRepository.DeleteAsync(userId);
+
+                await WriteAuditSafelyAsync(
+                    userId,
+                    "DeleteAccount",
+                    "Users",
+                    userId.ToString(),
+                    deleted ? "Success" : "Failure",
+                    deleted
+                        ? "User account deleted."
+                        : "User account deletion did not complete.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
+
+                return deleted;
             }
-            var user = await _userRepository.GetByIdAsync(userId);
+            catch (ArgumentException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to delete account for user {UserId}.",
+                    userId);
 
-            if (user is null)
-                return false;
+                await WriteAuditSafelyAsync(
+                    userId,
+                    "DeleteAccount",
+                    "Users",
+                    userId.ToString(),
+                    "Failure",
+                    "User account deletion failed.",
+                    _currentRequestInfo.IpAddress!,
+                    _currentRequestInfo.UserAgent!);
 
-            bool isPasswordValid = _passwordService.VerifyPassword(currentPassword,user.PasswordHash);
-
-            if (!isPasswordValid) { 
-                _logger.LogWarning("Attempted to delete account with an incorrect current password.");
-                throw new ArgumentException("Current password is incorrect.");
-            }   
-
-            return await _userRepository.DeleteAsync(userId);
+                throw;
+            }
         }
 
-
+        private async Task WriteAuditSafelyAsync(Guid? userId,string action,string entityType,
+            string? entityId,string outcome,string details , string ipAddress , string userAgent)
+        {
+            try
+            {
+                await _auditLog.CreateAsync(new AuditLogModel
+                {
+                    UserId = userId,
+                    Action = action,
+                    EntityType = entityType,
+                    EntityId = entityId,
+                    Outcome = outcome,
+                    Details = details,
+                    IpAddress = ipAddress,
+                    UserAgent = userAgent
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Failed to write audit log for {Action} on {EntityType}.",
+                    action,
+                    entityType);
+            }
+        }
     }
 }
