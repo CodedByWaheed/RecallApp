@@ -52,8 +52,7 @@ namespace RecallApp_BL.Services
 
             if (priority < 1 || priority > 3)
             {
-                _logger.LogWarning(
-                    "CreateAsync called with invalid priority {Priority} for UserId {UserId}.",
+                _logger.LogWarning("CreateAsync called with invalid priority {Priority} for UserId {UserId}.",
                     priority, userId);
 
                 throw new ArgumentException("Invalid priority.");
@@ -91,11 +90,9 @@ namespace RecallApp_BL.Services
                         Status = status
                     };
 
-                    savedItemId =
-                        await _savedItemRepository.CreateAsync(savedItem);
+                    savedItemId = await _savedItemRepository.CreateAsync(savedItem);
 
-                    EncryptionResult encryptionResult =
-                        _encryptionService.Encrypt(plaintext);
+                    EncryptionResult encryptionResult = _encryptionService.Encrypt(plaintext);
 
                     EncryptedContentModel encryptedContent =
                         new EncryptedContentModel
