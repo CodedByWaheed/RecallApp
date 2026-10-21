@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RecallApp_API.DTOs;
 using RecallApp_API.DTOs.SavedItems;
+using RecallApp_BL.DTOs.SavedItemResponse;
 using RecallApp_BL.Services.Interfaces;
 using RecallApp_BL.Services.Security;
 using RecallApp_DL.Models;
@@ -30,8 +31,8 @@ namespace RecallApp_API.Controllers
             return userId != Guid.Empty;
         }
 
-        [HttpGet("{id:guid}/content")]
-        public async Task<IActionResult> GetContent(Guid id)
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetSavedItem(Guid id)
         {
            
             if (!TryGetUserId(out Guid userId))
@@ -40,11 +41,11 @@ namespace RecallApp_API.Controllers
             }
             // Ownership will be enforced in the service/repository layer
             // before returning decrypted content.
-            string? content = await _savedItemService.GetContentAsync(userId,id);
-            if (content is null)
+            SavedItem? savedItme = await _savedItemService.GetSavedItemAsync(userId,id);
+            if (savedItme is null)
                 return NotFound();
 
-            return Ok(new { id, content });
+            return Ok(new { id, savedItme });
         }
 
         [HttpGet()]
@@ -55,7 +56,7 @@ namespace RecallApp_API.Controllers
                 return Unauthorized(new { message = "Invalid user identity." });
             }
 
-            List<SavedItemModel> savedItems = await _savedItemService.GetByUserIdAsync(userId);
+            List<SavedItem> savedItems = await _savedItemService.GetByUserIdAsync(userId);
 
             return Ok(savedItems);
         }
@@ -81,8 +82,8 @@ namespace RecallApp_API.Controllers
                 return Unauthorized(new { message = "Invalid user identity." });
             }
             Guid savedItemId = await _savedItemService.CreateAsync(userId, request.Type, request.Priority,
-                request.Status, request.Content);
-            return CreatedAtAction(nameof(GetContent), new { id = savedItemId }, new { id = savedItemId });
+                request.Status,request.Title, request.Content , request.Note);
+            return CreatedAtAction(nameof(GetSavedItem), new { id = savedItemId }, new { id = savedItemId });
         }
 
         [HttpPost("{id:guid}/archive")]
@@ -125,7 +126,7 @@ namespace RecallApp_API.Controllers
                 return Unauthorized(new { message = "Invalid user identity." });
             }
 
-            await _savedItemService.UpdateAsync(userId,id,request.Type,request.Priority,request.Status,request.Content);
+            await _savedItemService.UpdateAsync(userId,id,request.Type,request.Priority,request.Status,request.Title,request.Content,request.Note);
 
             return NoContent();
         }

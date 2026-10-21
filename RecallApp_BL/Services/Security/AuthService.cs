@@ -1,5 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
-using RecallApp_BL.DTOs;
+using RecallApp_BL.DTOs.LoginResponse;
 using RecallApp_BL.Services.Interfaces;
 using RecallApp_DL.Interfaces;
 using RecallApp_DL.Models;

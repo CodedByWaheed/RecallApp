@@ -10,10 +10,15 @@ namespace RecallApp_API.DTOs.SavedItems
         //public byte priority { get; set; }
         //public byte status { get; set; }
         //public string plaintext { get; set; } = null!;
-
+        
+        [StringLength(100_000, MinimumLength = 0)]
+        public string Title { get; set; } = string.Empty;
         [Required]
         [StringLength(100_000, MinimumLength = 1)]
         public string Content { get; set; } = string.Empty;
+
+        [StringLength(100_000, MinimumLength = 0)]
+        public string Note { get; set; } = string.Empty;
 
         [Range(1, 3)]
         public byte Type { get; set; }

@@ -1,4 +1,4 @@
-﻿using RecallApp_BL.DTOs;
+﻿using RecallApp_BL.DTOs.LoginResponse;
 using System;
 using System.Collections.Generic;
 using System.Linq;

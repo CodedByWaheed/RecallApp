@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace RecallApp_BL.DTOs
+namespace RecallApp_BL.DTOs.LoginResponse
 {
     public sealed class LoginResult
     {

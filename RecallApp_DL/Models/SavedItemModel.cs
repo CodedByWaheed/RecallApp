@@ -15,5 +15,7 @@ namespace RecallApp_DL.Models
         public byte Status   { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+
+        public List<EncryptedContentModel> encryptedContents { get; set; } = null!;
     }
 }
