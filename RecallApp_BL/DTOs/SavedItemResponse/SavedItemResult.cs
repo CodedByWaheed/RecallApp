@@ -12,6 +12,7 @@ namespace RecallApp_BL.DTOs.SavedItemResponse
     {
         //public SavedItemModel savedItem = null!;
         //List<EncryptedContentModel> encryptedContents = null!;
+        public Guid Id { get; set; }
         public string Title { get; set; } = null!;
         public string Content { get; set; } = null!;
         public string Note { get; set; } = null!;
@@ -19,6 +20,8 @@ namespace RecallApp_BL.DTOs.SavedItemResponse
         public byte Priority { get; set; }
         public byte Status { get; set; }
         public List<string> Tags { get; set; } = null!;
+        public DateTime CreatedAt { get; set; } 
+        public DateTime UpdatedAt { get; set; }
 
     }
 }

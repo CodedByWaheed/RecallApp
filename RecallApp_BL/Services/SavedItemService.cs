@@ -7,6 +7,7 @@ using RecallApp_BL.Services.Model;
 using RecallApp_DL.Interfaces;
 using RecallApp_DL.Models;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 
 
 namespace RecallApp_BL.Services
@@ -350,13 +351,17 @@ namespace RecallApp_BL.Services
                 return new SavedItem
                 {
                     // savedItem = savedItemModel,
+                    Id = savedItemModel.Id,
                     Content = content,
                     Title = title ?? "",
                     Note = note ?? "",
                     Type= savedItemModel.Type,
                     Priority = savedItemModel.Priority,
                     Status = savedItemModel.Status,
-                    Tags = ltags
+                    Tags = ltags,
+                    CreatedAt = savedItemModel.CreatedAt,
+                    UpdatedAt = savedItemModel.UpdatedAt
+                    
 
 
                 };
@@ -391,12 +396,15 @@ namespace RecallApp_BL.Services
             {
                 decryptedSavedItems.Add(new SavedItem
                 {
+                    Id = item.Id,
                     Priority = item.Priority,
                     Status = item.Status,
                     Type = item.Type,
                     Title = GetDecryptedTitle(item.encryptedContents) ?? "",
                     Content = GetDecryptedContent(item.encryptedContents) ?? "",
-                    Note = GetDecryptedNote(item.encryptedContents) ?? ""
+                    Note = GetDecryptedNote(item.encryptedContents) ?? "",
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt
                 });
             }
             return decryptedSavedItems;

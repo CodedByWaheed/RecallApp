@@ -45,7 +45,7 @@ namespace RecallApp_API.Controllers
             if (savedItme is null)
                 return NotFound();
 
-            return Ok(new { id, savedItme });
+            return Ok(new { savedItme });
         }
 
         [HttpGet()]
