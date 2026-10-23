@@ -67,6 +67,7 @@ namespace RecallApp_DL.Repositories
         public async Task<List<SavedItemModel>> GetByUserIdAsync(Guid userId)
         {
             List<SavedItemModel> savedItems = new List<SavedItemModel>();
+            List<EncryptedContentModel> encryptedContent = new List<EncryptedContentModel>();
             using SqlConnection connection = _connectionFactory.CreateConnection();
             using SqlCommand command = new SqlCommand(DbConstants.GetSavedItemsByUserId, connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -75,15 +76,46 @@ namespace RecallApp_DL.Repositories
             using SqlDataReader reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
+                encryptedContent.Add(new EncryptedContentModel
+                {
+                    Ciphertext = reader.IsDBNull(reader.GetOrdinal("TitleCiphertext")) ? Array.Empty<byte>() : (byte[])reader["TitleCiphertext"],
+                    Nonce = reader.IsDBNull(reader.GetOrdinal("TitleNonce")) ? Array.Empty<byte>() : (byte[])reader["TitleNonce"],
+                    Tag = reader.IsDBNull(reader.GetOrdinal("TitleTage")) ? Array.Empty<byte>() : (byte[])reader["TitleTage"],
+                    FieldType =  2,
+                    SavedItemId = reader.GetGuid(reader.GetOrdinal("SavedItemId")),
+                    Id = reader.IsDBNull(reader.GetOrdinal("TitleId")) ? Guid.Empty: reader.GetGuid(reader.GetOrdinal("TitleId"))
+                });
+                encryptedContent.Add(new EncryptedContentModel
+                {
+                    Ciphertext = reader.IsDBNull(reader.GetOrdinal("ContentCiphertext")) ? Array.Empty<byte>() : (byte[])reader["ContentCiphertext"],
+                    Nonce = reader.IsDBNull(reader.GetOrdinal("ContentNonce")) ? Array.Empty<byte>() : (byte[])reader["ContentNonce"],
+                    Tag = reader.IsDBNull(reader.GetOrdinal("ContentTag")) ? Array.Empty<byte>() : (byte[])reader["ContentTag"],
+                    FieldType = 1,
+                    SavedItemId = reader.GetGuid(reader.GetOrdinal("SavedItemId")),
+                    Id = reader.IsDBNull(reader.GetOrdinal("ContentId")) ? Guid.Empty : reader.GetGuid(reader.GetOrdinal("ContentId"))
+
+                });
+                encryptedContent.Add(new EncryptedContentModel
+                {
+                    Ciphertext = reader.IsDBNull(reader.GetOrdinal("NoteCiphertext")) ? Array.Empty<byte>() : (byte[])reader["NoteCiphertext"],
+                    Nonce = reader.IsDBNull(reader.GetOrdinal("NoteNonce")) ? Array.Empty<byte>() : (byte[])reader["NoteNonce"],
+                    Tag = reader.IsDBNull(reader.GetOrdinal("NoteTag")) ? Array.Empty<byte>() : (byte[])reader["NoteTag"],
+                    FieldType = 3,
+                    SavedItemId = reader.GetGuid(reader.GetOrdinal("SavedItemId")),
+                    Id = reader.IsDBNull(reader.GetOrdinal("NoteId")) ? Guid.Empty : reader.GetGuid(reader.GetOrdinal("NoteId"))
+
+                });
                 savedItems.Add(new SavedItemModel
                 {
-                    Id = reader.GetGuid(reader.GetOrdinal("Id")),
+                    Id = reader.GetGuid(reader.GetOrdinal("SavedItemId")),
                     UserId = reader.GetGuid(reader.GetOrdinal("UserId")),
-                    Type = reader.GetByte(reader.GetOrdinal("Type")),
+                    Type = reader.GetByte(reader.GetOrdinal("type")),
                     Priority = reader.GetByte(reader.GetOrdinal("Priority")),
                     Status = reader.GetByte(reader.GetOrdinal("Status")),
                     CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
-                    UpdatedAt = reader.GetDateTime(reader.GetOrdinal("UpdatedAt"))
+                    UpdatedAt = reader.GetDateTime(reader.GetOrdinal("UpdatedAt")),
+                    encryptedContents = encryptedContent
+
                 });
             }
             return savedItems;

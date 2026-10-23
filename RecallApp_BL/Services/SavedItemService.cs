@@ -234,54 +234,23 @@ namespace RecallApp_BL.Services
         //        throw;
         //    }
         //}
-        private string? GetDecryptedContent(List<EncryptedContentModel> encryptedContents)
+        private string? GetDecrypted(List<EncryptedContentModel> encryptedContents , int fieldType)
         {
-            EncryptedContentModel? content = encryptedContents.FirstOrDefault(ec => ec.FieldType == 1);
+            EncryptedContentModel? encrypted = encryptedContents.FirstOrDefault(ec => ec.FieldType == fieldType);
 
-            if (content is null)
+            if (encrypted is null)
                 return "";
 
-            string decryptedContent = _encryptionService.Decrypt(
+            string decrypted = _encryptionService.Decrypt(
                 new EncryptionResult
                 {
-                    Ciphertext = content.Ciphertext,
-                    Nonce = content.Nonce,
-                    Tag = content.Tag
+                    Ciphertext = encrypted.Ciphertext,
+                    Nonce = encrypted.Nonce,
+                    Tag = encrypted.Tag
                 });
-            return decryptedContent;
+            return decrypted;
         }
-        private string? GetDecryptedTitle(List<EncryptedContentModel> encryptedContents)
-        {
-            EncryptedContentModel? title = encryptedContents.FirstOrDefault(et => et.FieldType == 2);
-
-            if (title is null)
-                return "";
-
-            string decryptedTitle = _encryptionService.Decrypt(
-                new EncryptionResult
-                {
-                    Ciphertext = title.Ciphertext,
-                    Nonce = title.Nonce,
-                    Tag = title.Tag
-                });
-            return decryptedTitle;
-        }
-        private string? GetDecryptedNote(List<EncryptedContentModel> encryptedContents)
-        {
-            EncryptedContentModel? note = encryptedContents.FirstOrDefault(et => et.FieldType == 3);
-
-            if (note is null)
-                return "";
-
-            string decryptedNote = _encryptionService.Decrypt(
-                new EncryptionResult
-                {
-                    Ciphertext = note.Ciphertext,
-                    Nonce = note.Nonce,
-                    Tag = note.Tag
-                });
-            return decryptedNote;
-        }
+        
         public async Task<SavedItem?> GetSavedItemAsync(Guid userId , Guid savedItemId)
         {
             if (userId == Guid.Empty)
@@ -295,7 +264,7 @@ namespace RecallApp_BL.Services
                 List<EncryptedContentModel> encryptedContents = await _encryptedContentRepository
                         .GetBySavedItemIdAsync(userId, savedItemId);
 
-                string? content = GetDecryptedContent(encryptedContents);
+                string? content = GetDecrypted(encryptedContents , 1);
                 if (content is null){
                 
                     _logger.LogWarning(
@@ -314,8 +283,8 @@ namespace RecallApp_BL.Services
                     return null;
                 
                 }
-                string? title = GetDecryptedTitle(encryptedContents);
-                string? note = GetDecryptedNote(encryptedContents);
+                string? title = GetDecrypted(encryptedContents , 2);
+                string? note = GetDecrypted(encryptedContents , 3);
 
                 await WriteAuditSafelyAsync(
                     userId,
@@ -400,9 +369,9 @@ namespace RecallApp_BL.Services
                     Priority = item.Priority,
                     Status = item.Status,
                     Type = item.Type,
-                    Title = GetDecryptedTitle(item.encryptedContents) ?? "",
-                    Content = GetDecryptedContent(item.encryptedContents) ?? "",
-                    Note = GetDecryptedNote(item.encryptedContents) ?? "",
+                    Title = GetDecrypted(item.encryptedContents , 2) ?? "",
+                    Content = GetDecrypted(item.encryptedContents , 1) ?? "",
+                    Note = GetDecrypted(item.encryptedContents , 3) ?? "",
                     CreatedAt = item.CreatedAt,
                     UpdatedAt = item.UpdatedAt
                 });
@@ -422,11 +391,11 @@ namespace RecallApp_BL.Services
             try
             {
                 List<SavedItemModel> encryptedItems = await _savedItemRepository.GetByUserIdAsync(userId);
-                foreach (SavedItemModel item in encryptedItems) {
-                    List<EncryptedContentModel> encryptedContents = await _encryptedContentRepository
-                        .GetBySavedItemIdAsync(userId, item.Id);
-                    item.encryptedContents = encryptedContents;
-                }
+                //foreach (SavedItemModel item in encryptedItems) {
+                //    List<EncryptedContentModel> encryptedContents = await _encryptedContentRepository
+                //        .GetBySavedItemIdAsync(userId, item.Id);
+                //    item.encryptedContents = encryptedContents;
+                //}
                 List<SavedItem> decryptedItems = DecryptSavedItems(encryptedItems);
 
                 //Do i need Tags Here ??
