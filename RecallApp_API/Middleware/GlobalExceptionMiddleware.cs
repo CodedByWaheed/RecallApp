@@ -66,6 +66,10 @@ namespace RecallApp_API.Middleware
                 {
                     return (StatusCodes.Status409Conflict,"A record with the same unique value already exists.");
                 }
+                if (sqlException.Number is 50002)
+                {
+                    return (StatusCodes.Status409Conflict, "A tag with this name already exists.");
+                }
 
                 if (sqlException.Number is 50021 or 50023)
                 {

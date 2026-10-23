@@ -114,9 +114,7 @@ namespace RecallApp_BL.Services
         {
             try
             {
-                bool deleted = await _tagRepository.DeleteAsync(
-                    tagId,
-                    userId);
+                bool deleted = await _tagRepository.DeleteAsync(tagId,userId);
 
                 await WriteAuditSafelyAsync(
                     userId,
