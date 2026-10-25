@@ -32,7 +32,7 @@ namespace RecallApp_API.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        public async Task<IActionResult> GetSavedItem(Guid id)
+        public async Task<IActionResult> GetSavedItem(Guid id , [FromServices] IAuthorizationService authorizationService)
         {
            
             if (!TryGetUserId(out Guid userId))
@@ -41,22 +41,40 @@ namespace RecallApp_API.Controllers
             }
             // Ownership will be enforced in the service/repository layer
             // before returning decrypted content.
-            SavedItem? savedItme = await _savedItemService.GetSavedItemAsync(userId,id);
-            if (savedItme is null)
+
+            SavedItem? savedItem = await _savedItemService.GetSavedItemAsync(userId,id);
+            if (savedItem is null)
                 return NotFound();
 
-            return Ok(new { savedItme });
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                savedItem.UserId,
+                "UserOwner");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+           
+
+            return Ok(new { savedItem });
         }
 
         [HttpGet()]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromServices] IAuthorizationService authorizationService)
         {
             if (!TryGetUserId(out Guid userId))
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
-
             List<SavedItem> savedItems = await _savedItemService.GetByUserIdAsync(userId);
+           
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                savedItems.First().UserId,
+                "UserOwner");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+            
 
             return Ok(savedItems);
         }
@@ -87,13 +105,20 @@ namespace RecallApp_API.Controllers
         }
 
         [HttpPost("{id:guid}/archive")]
-        public async Task<IActionResult> Archive(Guid id)
+        public async Task<IActionResult> Archive(Guid id, [FromServices] IAuthorizationService authorizationService)
         {
             if (!TryGetUserId(out Guid userId))
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
+            var savedItem = await _savedItemService.GetSavedItemAsync(userId, id);
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                savedItem?.UserId,
+                "UserOwner");
 
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
             bool archived = await _savedItemService.ArchiveAsync(userId, id);
 
             if (!archived)
@@ -103,13 +128,20 @@ namespace RecallApp_API.Controllers
         }
 
         [HttpPost("{id:guid}/restore")]
-        public async Task<IActionResult> Restore(Guid id)
+        public async Task<IActionResult> Restore(Guid id, [FromServices] IAuthorizationService authorizationService)
         {
             if (!TryGetUserId(out Guid userId))
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
+            var savedItem = await _savedItemService.GetSavedItemAsync(userId, id);
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                savedItem?.UserId,
+                "UserOwner");
 
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
             bool restored = await _savedItemService.RestoreAsync(userId, id);
 
             if (!restored)
@@ -119,26 +151,40 @@ namespace RecallApp_API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id,[FromBody] UpdateSavedItemRequest request)
+        public async Task<IActionResult> Update(Guid id,[FromBody] UpdateSavedItemRequest request ,[FromServices] IAuthorizationService authorizationService)
         {
             if (!TryGetUserId(out Guid userId))
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
+            var savedItem = await _savedItemService.GetSavedItemAsync(userId, id);
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                savedItem?.UserId,
+                "UserOwner");
 
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
             await _savedItemService.UpdateAsync(userId,id,request.Type,request.Priority,request.Status,request.Title,request.Content,request.Note);
 
             return NoContent();
         }
 
         [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(Guid id, [FromServices] IAuthorizationService authorizationService)
         {
             if (!TryGetUserId(out Guid userId))
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
+            var savedItemUserId = _savedItemService.GetSavedItemAsync(userId, id);
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                savedItemUserId,
+                "UserOwner");
 
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
             bool deleted = await _savedItemService.DeleteAsync(userId, id);
 
             if (!deleted)

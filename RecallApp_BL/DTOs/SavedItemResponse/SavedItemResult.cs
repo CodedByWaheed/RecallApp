@@ -13,6 +13,7 @@ namespace RecallApp_BL.DTOs.SavedItemResponse
         //public SavedItemModel savedItem = null!;
         //List<EncryptedContentModel> encryptedContents = null!;
         public Guid Id { get; set; }
+        public Guid UserId { get; set; }
         public string Title { get; set; } = null!;
         public string Content { get; set; } = null!;
         public string Note { get; set; } = null!;

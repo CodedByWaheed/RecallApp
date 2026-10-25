@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.TagHelpers.Cache;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using RecallApp_API.Authorization;
 using RecallApp_API.Middleware;
 using RecallApp_BL.Services;
 using RecallApp_BL.Services.Interfaces;
@@ -10,9 +13,8 @@ using RecallApp_DL.Data;
 using RecallApp_DL.Interfaces;
 using RecallApp_DL.Repositories;
 using RecallApp_DL.Repositories.Interfaces;
-using System.Text;
-using Microsoft.AspNetCore.RateLimiting;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.RateLimiting;
 
 
@@ -221,6 +223,12 @@ builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<CurrentRequestInfo>();
+builder.Services.AddSingleton<IAuthorizationHandler, UserOwnerHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("UserOwner", policy =>
+        policy.Requirements.Add(new UserOwnerRequirement()));
+});
 
 
 

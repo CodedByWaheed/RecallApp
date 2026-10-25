@@ -2,9 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using RecallApp_API.DTOs.Tags;
+using RecallApp_BL.Services;
 using RecallApp_BL.Services.Interfaces;
-using System.Security.Claims;
 using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace RecallApp_API.Controllers
 {
@@ -42,12 +43,20 @@ namespace RecallApp_API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromServices] IAuthorizationService authorizationService)
         {
             if (!TryGetUserId(out Guid userId))
                 return Unauthorized(new { message = "Invalid user identity." });
 
             var tags = await _tagService.GetByUserIdAsync(userId);
+            
+            var authResult = await authorizationService.AuthorizeAsync(
+                User,
+                tags.First().UserId,
+                "UserOwner");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
 
             return Ok(tags);
         }
@@ -57,6 +66,7 @@ namespace RecallApp_API.Controllers
         {
             if (!TryGetUserId(out Guid userId))
                 return Unauthorized(new { message = "Invalid user identity." });
+
 
             bool updated = await _tagService.UpdateAsync(userId, id, request.Name);
 

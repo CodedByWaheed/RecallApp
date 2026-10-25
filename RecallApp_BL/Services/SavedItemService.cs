@@ -323,8 +323,9 @@ namespace RecallApp_BL.Services
                
                 return new SavedItem
                 {
-                    // savedItem = savedItemModel,
+                    
                     Id = savedItemModel.Id,
+                    UserId = savedItemModel.UserId,
                     Content = content,
                     Title = title ?? "",
                     Note = note ?? "",
@@ -370,6 +371,7 @@ namespace RecallApp_BL.Services
                 decryptedSavedItems.Add(new SavedItem
                 {
                     Id = item.Id,
+                    UserId = item.UserId,
                     Priority = item.Priority,
                     Status = item.Status,
                     Type = item.Type,
