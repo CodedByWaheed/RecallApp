@@ -67,7 +67,7 @@ namespace RecallApp_DL.Repositories
         public async Task<List<SavedItemModel>> GetByUserIdAsync(Guid userId)
         {
             List<SavedItemModel> savedItems = new List<SavedItemModel>();
-            List<EncryptedContentModel> encryptedContent = new List<EncryptedContentModel>();
+           
             using SqlConnection connection = _connectionFactory.CreateConnection();
             using SqlCommand command = new SqlCommand(DbConstants.GetSavedItemsByUserId, connection);
             command.CommandType = CommandType.StoredProcedure;
@@ -76,6 +76,7 @@ namespace RecallApp_DL.Repositories
             using SqlDataReader reader = await command.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
+                List<EncryptedContentModel> encryptedContent = new List<EncryptedContentModel>();
                 encryptedContent.Add(new EncryptedContentModel
                 {
                     Ciphertext = reader.IsDBNull(reader.GetOrdinal("TitleCiphertext")) ? Array.Empty<byte>() : (byte[])reader["TitleCiphertext"],
@@ -117,6 +118,7 @@ namespace RecallApp_DL.Repositories
                     encryptedContents = encryptedContent
 
                 });
+                
             }
             return savedItems;
         }

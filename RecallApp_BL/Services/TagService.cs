@@ -4,6 +4,7 @@ using RecallApp_DL.Interfaces;
 using RecallApp_DL.Models;
 using RecallApp_DL.Repositories.Interfaces;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Http;
 
 namespace RecallApp_BL.Services
 {
@@ -13,14 +14,17 @@ namespace RecallApp_BL.Services
         private readonly ILogger<TagService> _logger;
         private readonly IAuditLogRepository _auditLog;
         private readonly CurrentRequestInfo _currentRequestInfo;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly HttpContext? _context;
 
         public TagService(ITagRepository tagRepository,ILogger<TagService> logger,
-            IAuditLogRepository auditLog,CurrentRequestInfo currentRequestInfo)
+            IAuditLogRepository auditLog,CurrentRequestInfo currentRequestInfo , IHttpContextAccessor httpContext)
         {
             _tagRepository = tagRepository;
             _logger = logger;
             _auditLog = auditLog;
             _currentRequestInfo = currentRequestInfo;
+            _context = httpContext.HttpContext;
         }
 
         public async Task<Guid> CreateAsync(Guid userId, string name)
@@ -39,7 +43,8 @@ namespace RecallApp_BL.Services
                     "Tags",
                     tagId.Value.ToString(),
                     "Success",
-                    "Tag created successfully.");
+                    "Tag created successfully.",
+                    _context.TraceIdentifier);
 
                 return tagId.Value;
             }
@@ -56,7 +61,8 @@ namespace RecallApp_BL.Services
                     "Tags",
                     tagId?.ToString(),
                     "Failure",
-                    "Tag creation failed.");
+                    "Tag creation failed.",
+                    _context.TraceIdentifier);
 
                 throw;
             }
@@ -86,7 +92,8 @@ namespace RecallApp_BL.Services
                     updated ? "Success" : "Failure",
                     updated
                         ? "Tag updated successfully."
-                        : "Tag update did not complete.");
+                        : "Tag update did not complete.",
+                    _context.TraceIdentifier);
 
                 return updated;
             }
@@ -104,7 +111,9 @@ namespace RecallApp_BL.Services
                     "Tags",
                     tagId.ToString(),
                     "Failure",
-                    "Tag update failed.");
+                    "Tag update failed.",
+                    _context.TraceIdentifier
+                    );
 
                 throw;
             }
@@ -124,7 +133,8 @@ namespace RecallApp_BL.Services
                     deleted ? "Success" : "Failure",
                     deleted
                         ? "Tag deleted successfully."
-                        : "Tag deletion did not complete.");
+                        : "Tag deletion did not complete.",
+                    _context.TraceIdentifier);
 
                 return deleted;
             }
@@ -142,7 +152,8 @@ namespace RecallApp_BL.Services
                     "Tags",
                     tagId.ToString(),
                     "Failure",
-                    "Tag deletion failed.");
+                    "Tag deletion failed.",
+                    _context.TraceIdentifier);
 
                 throw;
             }
@@ -163,7 +174,8 @@ namespace RecallApp_BL.Services
                     "SavedItemTags",
                     $"{savedItemId}:{tagId}",
                     "Success",
-                    "Tag assigned to saved item successfully.");
+                    "Tag assigned to saved item successfully.",
+                    _context.TraceIdentifier);
             }
             catch (Exception ex)
             {
@@ -180,7 +192,8 @@ namespace RecallApp_BL.Services
                     "SavedItemTags",
                     $"{savedItemId}:{tagId}",
                     "Failure",
-                    "Tag assignment failed.");
+                    "Tag assignment failed." ,
+                    _context.TraceIdentifier);
 
                 throw;
             }
@@ -203,7 +216,8 @@ namespace RecallApp_BL.Services
                     removed ? "Success" : "Failure",
                     removed
                         ? "Tag removed from saved item successfully."
-                        : "Tag removal did not complete.");
+                        : "Tag removal did not complete." ,
+                    _context.TraceIdentifier);
 
                 return removed;
             }
@@ -222,7 +236,8 @@ namespace RecallApp_BL.Services
                     "SavedItemTags",
                     $"{savedItemId}:{tagId}",
                     "Failure",
-                    "Tag removal failed.");
+                    "Tag removal failed.",
+                    _context.TraceIdentifier); // do the same for the rest of the services
 
                 throw;
             }
@@ -260,7 +275,7 @@ namespace RecallApp_BL.Services
         }
 
         private async Task WriteAuditSafelyAsync(Guid? userId,string action,string entityType,
-            string? entityId,string outcome,string details)
+            string? entityId,string outcome,string details , string traceId  )
         {
             try
             {
@@ -273,7 +288,8 @@ namespace RecallApp_BL.Services
                     Outcome = outcome,
                     Details = details,
                     IpAddress = _currentRequestInfo.IpAddress!,
-                    UserAgent = _currentRequestInfo.UserAgent!
+                    UserAgent = _currentRequestInfo.UserAgent!,
+                    TraceId = traceId
                 });
             }
             catch (Exception ex)
