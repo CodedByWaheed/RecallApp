@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 using RecallApp_BL.Services.Interfaces;
 using RecallApp_DL.Interfaces;
@@ -13,14 +14,17 @@ namespace RecallApp_BL.Services
         private readonly ILogger<ReminderService> _logger;
         private readonly IAuditLogRepository _auditLog;
         private readonly CurrentRequestInfo _currentRequestInfo;
+        private readonly HttpContext _context;
 
         public ReminderService(IReminderRepository reminderRepository,ILogger<ReminderService> logger,
-            IAuditLogRepository auditLog,CurrentRequestInfo currentRequestInfo)
+            IAuditLogRepository auditLog,CurrentRequestInfo currentRequestInfo,
+            IHttpContextAccessor contextAccessor)
         {
             _reminderRepository = reminderRepository;
             _logger = logger;
             _auditLog = auditLog;
             _currentRequestInfo = currentRequestInfo;
+            _context = contextAccessor.HttpContext;
         }
 
         public async Task<Guid> CreateAsync(Guid userId,Guid savedItemId,DateTime remindAt)
@@ -280,7 +284,8 @@ namespace RecallApp_BL.Services
                     Outcome = outcome,
                     Details = details,
                     IpAddress = _currentRequestInfo.IpAddress!,
-                    UserAgent = _currentRequestInfo.UserAgent!
+                    UserAgent = _currentRequestInfo.UserAgent!,
+                    TraceId = _context!.TraceIdentifier
                 });
             }
             catch (Exception ex)

@@ -5,6 +5,7 @@ using RecallApp_DL.Models;
 using Microsoft.Extensions.Logging;
 using RecallApp_DL.Repositories.Interfaces;
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace RecallApp_BL.Services
 {
@@ -15,15 +16,18 @@ namespace RecallApp_BL.Services
         private readonly ILogger<UserService> _logger;
         private readonly IAuditLogRepository _auditLog;
         private readonly CurrentRequestInfo _currentRequestInfo;
+        private readonly HttpContext _Context;
 
         public UserService(IUserRepository userRepository,PasswordService passwordService
-            ,ILogger<UserService> logger,IAuditLogRepository auditLog,CurrentRequestInfo currentRequest)
+            ,ILogger<UserService> logger,IAuditLogRepository auditLog,CurrentRequestInfo currentRequest
+            ,IHttpContextAccessor contextAccessor)
         {
             _userRepository = userRepository;
             _passwordService = passwordService;
             _logger = logger;
             _auditLog = auditLog;
             _currentRequestInfo = currentRequest;
+            _Context = contextAccessor.HttpContext;
         }
 
         public async Task<Guid> RegisterAsync(string email, string password)
@@ -57,7 +61,7 @@ namespace RecallApp_BL.Services
                 userId = await _userRepository.CreateAsync(user);
 
                 await WriteAuditSafelyAsync(userId,"Register","Users",
-                    userId.Value.ToString(),"Success","User registered successfully.",_currentRequestInfo.IpAddress!,_currentRequestInfo.UserAgent!);
+                    userId.Value.ToString(),"Success","User registered successfully.");
 
                 return userId.Value;
             }
@@ -71,9 +75,8 @@ namespace RecallApp_BL.Services
                     "Users",
                     userId?.ToString(),
                     "Failure",
-                    "User registration failed.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                    "User registration failed."
+                    );
 
                 throw;
             }
@@ -104,9 +107,7 @@ namespace RecallApp_BL.Services
                 await WriteAuditSafelyAsync(
                     userId,"UpdateEmail","Users",userId.ToString(),
                     updated ? "Success" : "Failure",
-                    updated? "User email updated.": "User email update did not complete.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                    updated? "User email updated.": "User email update did not complete.");
 
                 return updated;
             }
@@ -123,9 +124,7 @@ namespace RecallApp_BL.Services
                     "Users",
                     userId.ToString(),
                     "Failure",
-                    "User email update failed.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                    "User email update failed.");
 
                 throw;
             }
@@ -161,8 +160,7 @@ namespace RecallApp_BL.Services
                         userId.ToString(),
                         "Failure",
                         "Password change failed because the user was not found."
-                        ,_currentRequestInfo.IpAddress!,
-                        _currentRequestInfo.UserAgent!);
+                        );
 
                     return false;
                 }
@@ -180,9 +178,7 @@ namespace RecallApp_BL.Services
                         "Users",
                         userId.ToString(),
                         "Failure",
-                        "Password change rejected because the current password was incorrect.",
-                        _currentRequestInfo.IpAddress!,
-                        _currentRequestInfo.UserAgent!);
+                        "Password change rejected because the current password was incorrect.");
 
                     throw new ArgumentException(
                         "Current password is incorrect.");
@@ -204,9 +200,7 @@ namespace RecallApp_BL.Services
                     updated ? "Success" : "Failure",
                     updated
                         ? "User password changed."
-                        : "User password change did not complete.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                        : "User password change did not complete.");
 
                 return updated;
             }
@@ -227,9 +221,7 @@ namespace RecallApp_BL.Services
                     "Users",
                     userId.ToString(),
                     "Failure",
-                    "User password change failed.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                    "User password change failed.");
 
                 throw;
             }
@@ -256,8 +248,7 @@ namespace RecallApp_BL.Services
                         userId.ToString(),
                         "Failure",
                         "Account deletion failed because the user was not found."
-                        ,_currentRequestInfo.IpAddress!,
-                        _currentRequestInfo.UserAgent!);
+                        );
 
                     return false;
                 }
@@ -275,9 +266,7 @@ namespace RecallApp_BL.Services
                         "Users",
                         userId.ToString(),
                         "Failure",
-                        "Account deletion rejected because the current password was incorrect.",
-                        _currentRequestInfo.IpAddress!,
-                        _currentRequestInfo.UserAgent!);
+                        "Account deletion rejected because the current password was incorrect.");
 
                     throw new ArgumentException("Current password is incorrect.");
                 }
@@ -292,9 +281,7 @@ namespace RecallApp_BL.Services
                     deleted ? "Success" : "Failure",
                     deleted
                         ? "User account deleted."
-                        : "User account deletion did not complete.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                        : "User account deletion did not complete.");
 
                 return deleted;
             }
@@ -315,16 +302,14 @@ namespace RecallApp_BL.Services
                     "Users",
                     userId.ToString(),
                     "Failure",
-                    "User account deletion failed.",
-                    _currentRequestInfo.IpAddress!,
-                    _currentRequestInfo.UserAgent!);
+                    "User account deletion failed.");
 
                 throw;
             }
         }
 
         private async Task WriteAuditSafelyAsync(Guid? userId,string action,string entityType,
-            string? entityId,string outcome,string details , string ipAddress , string userAgent)
+            string? entityId,string outcome,string details )
         {
             try
             {
@@ -336,8 +321,9 @@ namespace RecallApp_BL.Services
                     EntityId = entityId,
                     Outcome = outcome,
                     Details = details,
-                    IpAddress = ipAddress,
-                    UserAgent = userAgent
+                    IpAddress = _currentRequestInfo.IpAddress!,
+                    UserAgent = _currentRequestInfo.UserAgent!,
+                    TraceId = _Context?.TraceIdentifier
                 });
             }
             catch (Exception ex)

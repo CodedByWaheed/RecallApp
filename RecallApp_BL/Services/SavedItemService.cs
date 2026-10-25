@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using RecallApp_BL.DTOs.SavedItemResponse;
 using RecallApp_BL.DTOs.TagResponse;
@@ -22,10 +23,12 @@ namespace RecallApp_BL.Services
         private readonly IAuditLogRepository _auditLog;
         private readonly CurrentRequestInfo _currentRequestInfo;
         private readonly ITagRepository _tagRepositroy;
+        private readonly HttpContext _context;
 
         public SavedItemService(ISavedItemRepository savedItemRepository,IEncryptedContentRepository encryptedContentRepository,
             IUnitOfWork unitOfWork,IEncryptionService encryptionService,ILogger<SavedItemService> logger,
-            IAuditLogRepository auditLog,CurrentRequestInfo currentRequestInfo,ITagRepository tagRepository)
+            IAuditLogRepository auditLog,CurrentRequestInfo currentRequestInfo,ITagRepository tagRepository,
+            IHttpContextAccessor contextAccessor)
         {
             _savedItemRepository = savedItemRepository;
             _encryptedContentRepository = encryptedContentRepository;
@@ -35,6 +38,7 @@ namespace RecallApp_BL.Services
             _auditLog = auditLog;
             _currentRequestInfo = currentRequestInfo;
             _tagRepositroy = tagRepository;
+            _context = contextAccessor.HttpContext;
         }
 
         public async Task<Guid> CreateAsync(Guid userId,byte type,byte priority,byte status,string titlePlainText,string contentPlaintext , string notePlainText)
@@ -768,7 +772,9 @@ namespace RecallApp_BL.Services
                     Outcome = outcome,
                     Details = details,
                     IpAddress = _currentRequestInfo.IpAddress!,
-                    UserAgent = _currentRequestInfo.UserAgent!
+                    UserAgent = _currentRequestInfo.UserAgent!,
+                    TraceId = _context!.TraceIdentifier
+
                 });
             }
             catch (Exception ex)
