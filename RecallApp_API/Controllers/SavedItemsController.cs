@@ -177,10 +177,10 @@ namespace RecallApp_API.Controllers
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
-            var savedItemUserId = _savedItemService.GetSavedItemAsync(userId, id);
+            SavedItem? savedItem = await _savedItemService.GetSavedItemAsync(userId, id);
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
-                savedItemUserId,
+                savedItem?.UserId,
                 "UserOwner");
 
             if (!authResult.Succeeded)
