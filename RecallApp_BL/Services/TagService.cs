@@ -37,14 +37,14 @@ namespace RecallApp_BL.Services
             {
                 tagId = await _tagRepository.CreateAsync(userId, name);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "CreateTag",
-                    "Tags",
-                    tagId.Value.ToString(),
-                    "Success",
-                    "Tag created successfully."
-                    );
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "CreateTag",
+                //    "Tags",
+                //    tagId.Value.ToString(),
+                //    "Success",
+                //    "Tag created successfully."
+                //    );
 
                 return tagId.Value;
             }
@@ -83,15 +83,15 @@ namespace RecallApp_BL.Services
                     userId,
                     name);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "UpdateTag",
-                    "Tags",
-                    tagId.ToString(),
-                    updated ? "Success" : "Failure",
-                    updated
-                        ? "Tag updated successfully."
-                        : "Tag update did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "UpdateTag",
+                //    "Tags",
+                //    tagId.ToString(),
+                //    updated ? "Success" : "Failure",
+                //    updated
+                //        ? "Tag updated successfully."
+                //        : "Tag update did not complete.");
 
                 return updated;
             }
@@ -122,15 +122,15 @@ namespace RecallApp_BL.Services
             {
                 bool deleted = await _tagRepository.DeleteAsync(tagId,userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "DeleteTag",
-                    "Tags",
-                    tagId.ToString(),
-                    deleted ? "Success" : "Failure",
-                    deleted
-                        ? "Tag deleted successfully."
-                        : "Tag deletion did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "DeleteTag",
+                //    "Tags",
+                //    tagId.ToString(),
+                //    deleted ? "Success" : "Failure",
+                //    deleted
+                //        ? "Tag deleted successfully."
+                //        : "Tag deletion did not complete.");
 
                 return deleted;
             }
@@ -163,13 +163,13 @@ namespace RecallApp_BL.Services
                     savedItemId,
                     tagId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "AssignTag",
-                    "SavedItemTags",
-                    $"{savedItemId}:{tagId}",
-                    "Success",
-                    "Tag assigned to saved item successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "AssignTag",
+                //    "SavedItemTags",
+                //    $"{savedItemId}:{tagId}",
+                //    "Success",
+                //    "Tag assigned to saved item successfully.");
             }
             catch (Exception ex)
             {
@@ -201,15 +201,15 @@ namespace RecallApp_BL.Services
                     savedItemId,
                     tagId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "RemoveTag",
-                    "SavedItemTags",
-                    $"{savedItemId}:{tagId}",
-                    removed ? "Success" : "Failure",
-                    removed
-                        ? "Tag removed from saved item successfully."
-                        : "Tag removal did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "RemoveTag",
+                //    "SavedItemTags",
+                //    $"{savedItemId}:{tagId}",
+                //    removed ? "Success" : "Failure",
+                //    removed
+                //        ? "Tag removed from saved item successfully."
+                //        : "Tag removal did not complete.");
 
                 return removed;
             }

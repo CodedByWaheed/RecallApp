@@ -37,13 +37,13 @@ namespace RecallApp_BL.Services
             {
                 reminderId = await _reminderRepository.CreateAsync(userId,savedItemId,remindAt);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "CreateReminder",
-                    "Reminders",
-                    reminderId.Value.ToString(),
-                    "Success",
-                    "Reminder created successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "CreateReminder",
+                //    "Reminders",
+                //    reminderId.Value.ToString(),
+                //    "Success",
+                //    "Reminder created successfully.");
 
                 return reminderId.Value;
             }
@@ -73,13 +73,13 @@ namespace RecallApp_BL.Services
             {
                 List<ReminderModel> reminders =await _reminderRepository.GetPendingByUserIdAsync(userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "GetPendingReminders",
-                    "Reminders",
-                    null,
-                    "Success",
-                    "Pending reminders retrieved successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "GetPendingReminders",
+                //    "Reminders",
+                //    null,
+                //    "Success",
+                //    "Pending reminders retrieved successfully.");
 
                 return reminders;
             }
@@ -110,13 +110,13 @@ namespace RecallApp_BL.Services
                         userId,
                         savedItemId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "GetRemindersBySavedItem",
-                    "Reminders",
-                    savedItemId.ToString(),
-                    "Success",
-                    "Reminders for saved item retrieved successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "GetRemindersBySavedItem",
+                //    "Reminders",
+                //    savedItemId.ToString(),
+                //    "Success",
+                //    "Reminders for saved item retrieved successfully.");
 
                 return reminders;
             }
@@ -148,15 +148,15 @@ namespace RecallApp_BL.Services
             {
                 bool updated = await _reminderRepository.UpdateAsync(userId,reminderId,remindAt);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "UpdateReminder",
-                    "Reminders",
-                    reminderId.ToString(),
-                    updated ? "Success" : "Failure",
-                    updated
-                        ? "Reminder updated successfully."
-                        : "Reminder update did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "UpdateReminder",
+                //    "Reminders",
+                //    reminderId.ToString(),
+                //    updated ? "Success" : "Failure",
+                //    updated
+                //        ? "Reminder updated successfully."
+                //        : "Reminder update did not complete.");
 
                 return updated;
             }
@@ -186,15 +186,15 @@ namespace RecallApp_BL.Services
             {
                 bool updated =await _reminderRepository.SetCompletionAsync(userId,reminderId,isCompleted);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "SetReminderCompletion",
-                    "Reminders",
-                    reminderId.ToString(),
-                    updated ? "Success" : "Failure",
-                    updated
-                        ? $"Reminder completion status set to {isCompleted}."
-                        : "Reminder completion status update did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "SetReminderCompletion",
+                //    "Reminders",
+                //    reminderId.ToString(),
+                //    updated ? "Success" : "Failure",
+                //    updated
+                //        ? $"Reminder completion status set to {isCompleted}."
+                //        : "Reminder completion status update did not complete.");
 
                 return updated;
             }
@@ -224,15 +224,15 @@ namespace RecallApp_BL.Services
             {
                 bool deleted = await _reminderRepository.DeleteAsync(userId,reminderId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "DeleteReminder",
-                    "Reminders",
-                    reminderId.ToString(),
-                    deleted ? "Success" : "Failure",
-                    deleted
-                        ? "Reminder deleted successfully."
-                        : "Reminder deletion did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "DeleteReminder",
+                //    "Reminders",
+                //    reminderId.ToString(),
+                //    deleted ? "Success" : "Failure",
+                //    deleted
+                //        ? "Reminder deleted successfully."
+                //        : "Reminder deletion did not complete.");
 
                 return deleted;
             }

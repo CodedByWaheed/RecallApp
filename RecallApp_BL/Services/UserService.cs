@@ -60,8 +60,8 @@ namespace RecallApp_BL.Services
 
                 userId = await _userRepository.CreateAsync(user);
 
-                await WriteAuditSafelyAsync(userId,"Register","Users",
-                    userId.Value.ToString(),"Success","User registered successfully.");
+                //await WriteAuditSafelyAsync(userId,"Register","Users",
+                //    userId.Value.ToString(),"Success","User registered successfully.");
 
                 return userId.Value;
             }
@@ -104,10 +104,10 @@ namespace RecallApp_BL.Services
             {
                 bool updated =await _userRepository.UpdateEmailAsync(userId, email);
 
-                await WriteAuditSafelyAsync(
-                    userId,"UpdateEmail","Users",userId.ToString(),
-                    updated ? "Success" : "Failure",
-                    updated? "User email updated.": "User email update did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,"UpdateEmail","Users",userId.ToString(),
+                //    updated ? "Success" : "Failure",
+                //    updated? "User email updated.": "User email update did not complete.");
 
                 return updated;
             }
@@ -192,15 +192,15 @@ namespace RecallApp_BL.Services
                         userId,
                         newPasswordHash);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "ChangePassword",
-                    "Users",
-                    userId.ToString(),
-                    updated ? "Success" : "Failure",
-                    updated
-                        ? "User password changed."
-                        : "User password change did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "ChangePassword",
+                //    "Users",
+                //    userId.ToString(),
+                //    updated ? "Success" : "Failure",
+                //    updated
+                //        ? "User password changed."
+                //        : "User password change did not complete.");
 
                 return updated;
             }
@@ -273,15 +273,15 @@ namespace RecallApp_BL.Services
 
                 bool deleted = await _userRepository.DeleteAsync(userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "DeleteAccount",
-                    "Users",
-                    userId.ToString(),
-                    deleted ? "Success" : "Failure",
-                    deleted
-                        ? "User account deleted."
-                        : "User account deletion did not complete.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "DeleteAccount",
+                //    "Users",
+                //    userId.ToString(),
+                //    deleted ? "Success" : "Failure",
+                //    deleted
+                //        ? "User account deleted."
+                //        : "User account deletion did not complete.");
 
                 return deleted;
             }

@@ -139,13 +139,13 @@ namespace RecallApp_BL.Services
                     await _encryptedContentRepository.CreateAsync(encryptedNote);
                 });
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "CreateSavedItem",
-                    "SavedItems",
-                    savedItemId.ToString(),
-                    "Success",
-                    "Saved item created successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "CreateSavedItem",
+                //    "SavedItems",
+                //    savedItemId.ToString(),
+                //    "Success",
+                //    "Saved item created successfully.");
 
                 return savedItemId;
             }
@@ -170,74 +170,7 @@ namespace RecallApp_BL.Services
             }
         }
 
-        //public async Task<string?> GetContentAsync(Guid userId,Guid savedItemId)
-        //{
-        //    if (userId == Guid.Empty)
-        //        throw new ArgumentException("User ID is required.");
-
-        //    if (savedItemId == Guid.Empty)
-        //        throw new ArgumentException("Saved item ID is required.");
-
-        //    try
-        //    {
-        //        List<EncryptedContentModel> encryptedContents =await _encryptedContentRepository
-        //                .GetBySavedItemIdAsync(userId, savedItemId);
-
-        //        EncryptedContentModel? content = encryptedContents.FirstOrDefault(ec => ec.FieldType == 1);
-
-        //        if (content is null)
-        //        {
-        //            _logger.LogWarning(
-        //                "Saved item content was not found for SavedItemId {SavedItemId}.",
-        //                savedItemId);
-
-        //            await WriteAuditSafelyAsync(
-        //                userId,
-        //                "GetSavedItemContent",
-        //                "SavedItems",
-        //                savedItemId.ToString(),
-        //                "Failure",
-        //                "Saved item content was not found or was inaccessible.");
-
-        //            return null;
-        //        }
-
-        //        string decryptedContent = _encryptionService.Decrypt(
-        //            new EncryptionResult
-        //            {
-        //                Ciphertext = content.Ciphertext,
-        //                Nonce = content.Nonce,
-        //                Tag = content.Tag
-        //            });
-
-        //        await WriteAuditSafelyAsync(
-        //            userId,
-        //            "GetSavedItemContent",
-        //            "SavedItems",
-        //            savedItemId.ToString(),
-        //            "Success",
-        //            "Saved item content retrieved successfully.");
-
-        //        return decryptedContent;
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _logger.LogError(
-        //            ex,
-        //            "Failed to retrieve content for saved item {SavedItemId}, user {UserId}.",
-        //            savedItemId, userId);
-
-        //        await WriteAuditSafelyAsync(
-        //            userId,
-        //            "GetSavedItemContent",
-        //            "SavedItems",
-        //            savedItemId.ToString(),
-        //            "Failure",
-        //            "Failed to retrieve or decrypt saved item content.");
-
-        //        throw;
-        //    }
-        //}
+     
         private string? GetDecrypted(List<EncryptedContentModel> encryptedContents , int fieldType)
         {
             EncryptedContentModel? encrypted = encryptedContents.FirstOrDefault(ec => ec.FieldType == fieldType);
@@ -290,13 +223,13 @@ namespace RecallApp_BL.Services
                 string? title = GetDecrypted(encryptedContents , 2);
                 string? note = GetDecrypted(encryptedContents , 3);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "GetSavedItemContent",
-                    "SavedItems",
-                    savedItemId.ToString(),
-                    "Success",
-                    "Saved item retrieved successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "GetSavedItemContent",
+                //    "SavedItems",
+                //    savedItemId.ToString(),
+                //    "Success",
+                //    "Saved item retrieved successfully.");
                 SavedItemModel savedItemModel = await _savedItemRepository.GetByIdAsync(savedItemId);
                 if (savedItemModel is null)
                 {
@@ -404,13 +337,13 @@ namespace RecallApp_BL.Services
                 List<SavedItem> decryptedItems = DecryptSavedItems(encryptedItems);
 
                 //Do i need Tags Here ??
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "GetSavedItems",
-                    "SavedItems",
-                    null,
-                    "Success",
-                    "User's saved items retrieved successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "GetSavedItems",
+                //    "SavedItems",
+                //    null,
+                //    "Success",
+                //    "User's saved items retrieved successfully.");
 
                 return decryptedItems;
             }
@@ -516,13 +449,13 @@ namespace RecallApp_BL.Services
 
                 });
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "UpdateSavedItem",
-                    "SavedItems",
-                    savedItemId.ToString(),
-                    "Success",
-                    "Saved item Updated successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "UpdateSavedItem",
+                //    "SavedItems",
+                //    savedItemId.ToString(),
+                //    "Success",
+                //    "Saved item Updated successfully.");
 
                 //return savedItemId;
             }
@@ -559,15 +492,15 @@ namespace RecallApp_BL.Services
             {
                 bool archived =await _savedItemRepository.ArchiveAsync(savedItemId, userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "ArchiveSavedItem",
-                    "SavedItems",
-                    savedItemId.ToString(),
-                    archived ? "Success" : "Failure",
-                    archived
-                        ? "Saved item archived successfully."
-                        : "Saved item could not be archived or was inaccessible.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "ArchiveSavedItem",
+                //    "SavedItems",
+                //    savedItemId.ToString(),
+                //    archived ? "Success" : "Failure",
+                //    archived
+                //        ? "Saved item archived successfully."
+                //        : "Saved item could not be archived or was inaccessible.");
 
                 return archived;
             }
@@ -602,15 +535,15 @@ namespace RecallApp_BL.Services
             {
                 bool restored =await _savedItemRepository.RestoreAsync(savedItemId, userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "RestoreSavedItem",
-                    "SavedItems",
-                    savedItemId.ToString(),
-                    restored ? "Success" : "Failure",
-                    restored
-                        ? "Saved item restored successfully."
-                        : "Saved item could not be restored or was inaccessible.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "RestoreSavedItem",
+                //    "SavedItems",
+                //    savedItemId.ToString(),
+                //    restored ? "Success" : "Failure",
+                //    restored
+                //        ? "Saved item restored successfully."
+                //        : "Saved item could not be restored or was inaccessible.");
 
                 return restored;
             }
@@ -642,13 +575,13 @@ namespace RecallApp_BL.Services
             {
                 List<SavedItemModel> items = await _savedItemRepository.GetArchivedByUserIdAsync(userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "GetArchivedSavedItems",
-                    "SavedItems",
-                    null,
-                    "Success",
-                    "Archived saved items retrieved successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "GetArchivedSavedItems",
+                //    "SavedItems",
+                //    null,
+                //    "Success",
+                //    "Archived saved items retrieved successfully.");
 
                 return items;
             }
@@ -681,19 +614,18 @@ namespace RecallApp_BL.Services
 
             try
             {
-                bool deleted =
-                    await _savedItemRepository.DeleteAsync(
+                bool deleted = await _savedItemRepository.DeleteAsync(
                         savedItemId, userId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "DeleteSavedItem",
-                    "SavedItems",
-                    savedItemId.ToString(),
-                    deleted ? "Success" : "Failure",
-                    deleted
-                        ? "Saved item deleted successfully."
-                        : "Saved item could not be deleted or was inaccessible.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "DeleteSavedItem",
+                //    "SavedItems",
+                //    savedItemId.ToString(),
+                //    deleted ? "Success" : "Failure",
+                //    deleted
+                //        ? "Saved item deleted successfully."
+                //        : "Saved item could not be deleted or was inaccessible.");
 
                 return deleted;
             }
@@ -730,13 +662,13 @@ namespace RecallApp_BL.Services
                     await _savedItemRepository.GetByTagIdAsync(
                         userId, tagId);
 
-                await WriteAuditSafelyAsync(
-                    userId,
-                    "GetSavedItemsByTag",
-                    "Tags",
-                    tagId.ToString(),
-                    "Success",
-                    "Saved items associated with the tag retrieved successfully.");
+                //await WriteAuditSafelyAsync(
+                //    userId,
+                //    "GetSavedItemsByTag",
+                //    "Tags",
+                //    tagId.ToString(),
+                //    "Success",
+                //    "Saved items associated with the tag retrieved successfully.");
 
                 return items;
             }
