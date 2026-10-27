@@ -385,7 +385,7 @@ namespace RecallApp_BL.Services
             return decryptedSavedItems;
         }
 
-        public async Task<List<SavedItem>> GetByUserIdAsync(Guid userId)
+        public async Task<List<SavedItem>?> GetByUserIdAsync(Guid userId)
         {
             if (userId == Guid.Empty)
             {
@@ -397,11 +397,10 @@ namespace RecallApp_BL.Services
             try
             {
                 List<SavedItemModel> encryptedItems = await _savedItemRepository.GetByUserIdAsync(userId);
-                //foreach (SavedItemModel item in encryptedItems) {
-                //    List<EncryptedContentModel> encryptedContents = await _encryptedContentRepository
-                //        .GetBySavedItemIdAsync(userId, item.Id);
-                //    item.encryptedContents = encryptedContents;
-                //}
+               
+                if (encryptedItems.Count == 0)
+                    return null;
+
                 List<SavedItem> decryptedItems = DecryptSavedItems(encryptedItems);
 
                 //Do i need Tags Here ??

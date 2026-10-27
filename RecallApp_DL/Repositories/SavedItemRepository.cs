@@ -64,7 +64,7 @@ namespace RecallApp_DL.Repositories
 
             return (Guid)result!;
         }
-        public async Task<List<SavedItemModel>> GetByUserIdAsync(Guid userId)
+        public async Task<List<SavedItemModel>?> GetByUserIdAsync(Guid userId)
         {
             List<SavedItemModel> savedItems = new List<SavedItemModel>();
            
@@ -120,7 +120,8 @@ namespace RecallApp_DL.Repositories
                 });
                 
             }
-            return savedItems;
+            
+            return savedItems?? null;
         }
         public async Task UpdateAsync(SavedItemModel model)
         {

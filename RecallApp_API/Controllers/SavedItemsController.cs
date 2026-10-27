@@ -65,7 +65,10 @@ namespace RecallApp_API.Controllers
             {
                 return Unauthorized(new { message = "Invalid user identity." });
             }
-            List<SavedItem> savedItems = await _savedItemService.GetByUserIdAsync(userId);
+            List<SavedItem>? savedItems = await _savedItemService.GetByUserIdAsync(userId);
+
+            if (savedItems is null )
+                return NoContent();
            
             var authResult = await authorizationService.AuthorizeAsync(
                 User,
